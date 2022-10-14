@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
             String salt = SecureUtils.getSalt();
             user.setPassword(SecureUtils.getPasswordWithSHA512(pepper + salt + user.getPassword()));
             user.setSalt(salt);
-            user.setPasswordKeptAsHash(true);
+            user.setIsPasswordKeptAsHash(true);
             userRepository.save(user);
         } catch (NoSuchAlgorithmException exception) {
             throw new RuntimeException(exception);

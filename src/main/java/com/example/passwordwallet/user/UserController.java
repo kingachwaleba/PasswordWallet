@@ -17,7 +17,10 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> createAccount(@Valid @RequestBody User user) {
-//        return ResponseEntity.ok(userService.saveUsingSHA512(user));
-        return ResponseEntity.ok(userService.saveUsingHMAC(user));
+        
+        if (user.getIsPasswordKeptAsHash())
+            return ResponseEntity.ok(userService.saveUsingSHA512(user));
+        else
+            return ResponseEntity.ok(userService.saveUsingHMAC(user));
     }
 }

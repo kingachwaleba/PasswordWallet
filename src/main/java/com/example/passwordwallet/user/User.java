@@ -34,7 +34,8 @@ public class User {
     @Column
     private String salt;
 
-    private boolean isPasswordKeptAsHash;
+    @Column(nullable = false)
+    private Boolean isPasswordKeptAsHash;
 
     // @Transient annotation is used to indicate that a field is not to be persisted in the database
     @Transient
