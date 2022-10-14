@@ -22,18 +22,24 @@ public class User {
 
     @Column(unique = true, nullable = false, length = 30)
     @NotBlank
-    @Pattern(regexp = "^(?=.*[A-Za-z0-9]$)[A-Za-z][A-Za-z\\d.-]{1,30}$",
-            message = "{user.login.regexp}")
     private String login;
+
+    @Column(unique = true, nullable = false, length = 30)
+    @NotBlank
+    private String email;
 
     //    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(length = 512, nullable = false)
     @NotBlank
-    private String password_hash;
+    private String password;
 
-    @Column(length = 20)
-    private String salt;
+//    @Column(length = 20)
+//    private String salt;
 
-    private boolean isPasswordKeptAsHash;
+//    private boolean isPasswordKeptAsHash;
+
+    // @Transient annotation is used to indicate that a field is not to be persisted in the database
+    @Transient
+    private String roles = "ROLE_USER";
 
 }
