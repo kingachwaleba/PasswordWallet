@@ -16,7 +16,8 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> createAccount(@Valid @RequestBody User user, BindingResult bindingResult) {
-        return ResponseEntity.ok(userService.saveUsingSHA512(user));
+    public ResponseEntity<?> createAccount(@Valid @RequestBody User user) {
+//        return ResponseEntity.ok(userService.saveUsingSHA512(user));
+        return ResponseEntity.ok(userService.saveUsingHMAC(user));
     }
 }

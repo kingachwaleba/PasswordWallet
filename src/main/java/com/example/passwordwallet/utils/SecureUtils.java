@@ -1,13 +1,20 @@
 package com.example.passwordwallet.utils;
 
 
+import org.apache.commons.codec.digest.HmacUtils;
+
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+
 public class SecureUtils {
+
+    public static String getPasswordWithHMAC(String text, String key){
+        return new HmacUtils("HmacSHA512", key).hmacHex(text);
+    }
 
     public static String getPasswordWithSHA512(String text) {
         try {
