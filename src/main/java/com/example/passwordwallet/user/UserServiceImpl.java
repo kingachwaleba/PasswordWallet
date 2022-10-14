@@ -1,7 +1,12 @@
 package com.example.passwordwallet.user;
 
+import com.example.passwordwallet.utils.SecureUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -9,15 +14,25 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Value("${app.pepper}")
+    private String pepper;
+
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Override
-    public User save(User user) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+    public User saveUsingSHA512(User user) {
+        try {
+            String salt = SecureUtils.getSalt();
+            user.setPassword(SecureUtils.getPasswordWithSHA512(pepper + salt + user.getPassword()));
+            user.setSalt(salt);
+            user.setPasswordKeptAsHash(true);
+            userRepository.save(user);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new RuntimeException(exception);
+        }
 
         return user;
     }

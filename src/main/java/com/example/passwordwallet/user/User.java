@@ -5,8 +5,6 @@ import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
 @Getter
 @Setter
@@ -20,23 +18,23 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    @Column(unique = true, nullable = false, length = 30)
+    @Column(unique = true, nullable = false, length = 50)
     @NotBlank
     private String login;
 
-    @Column(unique = true, nullable = false, length = 30)
+    @Column(unique = true, nullable = false, length = 50)
     @NotBlank
     private String email;
 
-    //    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(length = 512, nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Column(nullable = false)
     @NotBlank
     private String password;
 
-//    @Column(length = 20)
-//    private String salt;
+    @Column
+    private String salt;
 
-//    private boolean isPasswordKeptAsHash;
+    private boolean isPasswordKeptAsHash;
 
     // @Transient annotation is used to indicate that a field is not to be persisted in the database
     @Transient
