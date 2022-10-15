@@ -15,7 +15,7 @@ public class JwtResponse {
     private String login;
     private String image;
 
-    public JwtResponse(String accessToken, Date expiryDate, String login, String image) {
+    public JwtResponse(String accessToken, Date expiryDate, String login) {
         this.token = accessToken;
         this.expiryDate = expiryDate;
         this.login = login;
