@@ -35,7 +35,7 @@ public class Password {
     private String login;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_user", referencedColumnName="id")
-    private User id_user;
+    @JoinColumn(name = "user", referencedColumnName="id")
+    private User user;
 
 }

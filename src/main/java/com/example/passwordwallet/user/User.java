@@ -1,10 +1,14 @@
 package com.example.passwordwallet.user;
 
+import com.example.passwordwallet.password.Password;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -41,4 +45,12 @@ public class User {
     @Transient
     private String roles = "ROLE_USER";
 
+    @JsonIgnore
+    @OneToMany(mappedBy="password", cascade = CascadeType.ALL)
+    private Set<Password> passwordSet = new HashSet<>();
+
+    public void addPassword(Password password) {
+        passwordSet.add(password);
+        password.setUser(this);
+    }
 }
