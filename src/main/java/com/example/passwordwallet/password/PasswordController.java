@@ -2,10 +2,7 @@ package com.example.passwordwallet.password;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
@@ -26,7 +23,12 @@ public class PasswordController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> all() throws Exception {
+    public ResponseEntity<?> getAllPasswords() throws Exception {
         return new ResponseEntity<>(passwordService.getAll(), HttpStatus.OK);
+    }
+
+    @GetMapping("/password/{id}")
+    public ResponseEntity<?> getDecryptedPassword(@PathVariable String id) throws Exception {
+        return new ResponseEntity<>(passwordService.getOne(Integer.parseInt(id)), HttpStatus.OK);
     }
 }

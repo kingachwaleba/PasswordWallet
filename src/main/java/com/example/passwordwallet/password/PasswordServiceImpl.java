@@ -6,7 +6,6 @@ import com.example.passwordwallet.user.UserService;
 import com.example.passwordwallet.utils.SecureUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,15 +32,17 @@ public class PasswordServiceImpl implements PasswordService {
     }
 
     @Override
-    public List<String> getAll() throws Exception {
+    public List<Password> getAll() {
         User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
-        List<Password> passwordList = passwordRepository.findAllByUser(currentLoggedInUser);
-        List<String> newPasswordList = new ArrayList<>();
-        for (Password password : passwordList) {
-            newPasswordList.add(SecureUtils.decrypt(password.getPassword(),
-                    SecureUtils.generateKey(currentLoggedInUser.getPassword())));
-        }
 
-        return newPasswordList;
+        return passwordRepository.findAllByUser(currentLoggedInUser);
+    }
+
+    @Override
+    public String getOne(int id) throws Exception {
+        User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+        Password password = passwordRepository.findById(id).orElseThrow(RuntimeException::new);
+
+        return SecureUtils.decrypt(password.getPassword(), SecureUtils.generateKey(currentLoggedInUser.getPassword()));
     }
 }
