@@ -1,7 +1,9 @@
 package com.example.passwordwallet.password;
 
+import com.example.passwordwallet.security.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
@@ -11,9 +13,11 @@ import javax.validation.Valid;
 public class PasswordController {
 
     private final PasswordService passwordService;
+    private final AuthenticationService authenticationService;
 
-    public PasswordController(PasswordService passwordService) {
+    public PasswordController(PasswordService passwordService, AuthenticationService authenticationService) {
         this.passwordService = passwordService;
+        this.authenticationService = authenticationService;
     }
 
     @Transactional
@@ -28,6 +32,7 @@ public class PasswordController {
     }
 
     @GetMapping("/password/{id}")
+    @PreAuthorize("@authenticationService.isPasswordOwner(#id)")
     public ResponseEntity<?> getDecryptedPassword(@PathVariable String id) throws Exception {
         return new ResponseEntity<>(passwordService.getOne(Integer.parseInt(id)), HttpStatus.OK);
     }

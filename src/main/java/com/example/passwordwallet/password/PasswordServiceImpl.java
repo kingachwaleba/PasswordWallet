@@ -7,6 +7,7 @@ import com.example.passwordwallet.utils.SecureUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PasswordServiceImpl implements PasswordService {
@@ -44,5 +45,10 @@ public class PasswordServiceImpl implements PasswordService {
         Password password = passwordRepository.findById(id).orElseThrow(RuntimeException::new);
 
         return SecureUtils.decrypt(password.getPassword(), SecureUtils.generateKey(currentLoggedInUser.getPassword()));
+    }
+
+    @Override
+    public Optional<Password> getOneById(int id) {
+        return passwordRepository.findById(id);
     }
 }
