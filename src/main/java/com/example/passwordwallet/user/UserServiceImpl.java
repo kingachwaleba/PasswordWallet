@@ -1,24 +1,30 @@
 package com.example.passwordwallet.user;
 
 import com.example.passwordwallet.config.EnvConfig;
+import com.example.passwordwallet.config.ErrorMessage;
 import com.example.passwordwallet.encoders.HMACPasswordEncoder;
 import com.example.passwordwallet.encoders.Sha512PasswordEncoder;
 import com.example.passwordwallet.utils.SecureUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ErrorMessage errorMessage;
     private static final String pepper = EnvConfig.getPepper();
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, ErrorMessage errorMessage) {
         this.userRepository = userRepository;
+        this.errorMessage = errorMessage;
     }
 
     @Override
@@ -56,5 +62,46 @@ public class UserServiceImpl implements UserService {
         String currentUserLogin = authentication.getName();
 
         return userRepository.findByLogin(currentUserLogin);
+    }
+
+    @Override
+    public List<String> getErrorList(BindingResult bindingResult) {
+        List<String> messages = new ArrayList<>();
+
+        if (bindingResult.hasErrors())
+            bindingResult.getFieldErrors().forEach(fieldError -> messages.add(fieldError.getDefaultMessage()));
+
+        return messages;
+    }
+
+    @Override
+    public List<String> passwordValidation(String password) {
+        List<String> messages = new ArrayList<>();
+
+        if (!password.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"))
+            messages.add(errorMessage.get("user.password.regexp"));
+
+        if (password.length() < 5 || password.length() > 50)
+            messages.add(errorMessage.get("user.password.size"));
+
+        return messages;
+    }
+
+    @Override
+    public List<String> validation(BindingResult bindingResult, String password) {
+        List<String> messages = getErrorList(bindingResult);
+        messages.addAll(passwordValidation(password));
+
+        return messages;
+    }
+
+    @Override
+    public Boolean existsByLogin(String login) {
+        return userRepository.existsByLogin(login);
+    }
+
+    @Override
+    public Boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
