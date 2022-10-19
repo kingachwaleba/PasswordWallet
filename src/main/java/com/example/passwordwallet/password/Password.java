@@ -2,7 +2,6 @@ package com.example.passwordwallet.password;
 
 import com.example.passwordwallet.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +9,8 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 @Getter
 @Setter
@@ -23,18 +24,19 @@ public class Password {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(unique = true, nullable = false, length = 256)
-    @NotBlank
+    @Column(nullable = false, length = 256)
+    @NotBlank(message = "{password.password.notBlank}")
     private String password;
 
     @Column(length = 256)
+
     private String web_address;
 
     @Column(length = 256)
     private String description;
 
-    @Column(length = 30)
+    @Column(length = 45)
+    @Size(max = 45, message = "{password.login.size}")
     private String login;
 
     @ManyToOne(fetch = FetchType.EAGER)

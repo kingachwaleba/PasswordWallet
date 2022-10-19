@@ -5,7 +5,9 @@ import com.example.passwordwallet.user.UserNotFoundException;
 import com.example.passwordwallet.user.UserService;
 import com.example.passwordwallet.utils.SecureUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +44,7 @@ public class PasswordServiceImpl implements PasswordService {
     @Override
     public String getOne(int id) throws Exception {
         User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
-        Password password = passwordRepository.findById(id).orElseThrow(RuntimeException::new);
+        Password password = passwordRepository.findById(id).orElseThrow(PasswordNotFoundException::new);
 
         return SecureUtils.decrypt(password.getPassword(), SecureUtils.generateKey(currentLoggedInUser.getPassword()));
     }
@@ -50,5 +52,15 @@ public class PasswordServiceImpl implements PasswordService {
     @Override
     public Optional<Password> getOneById(int id) {
         return passwordRepository.findById(id);
+    }
+
+    @Override
+    public List<String> getErrorList(BindingResult bindingResult) {
+        List<String> messages = new ArrayList<>();
+
+        if (bindingResult.hasErrors())
+            bindingResult.getFieldErrors().forEach(fieldError -> messages.add(fieldError.getDefaultMessage()));
+
+        return messages;
     }
 }
