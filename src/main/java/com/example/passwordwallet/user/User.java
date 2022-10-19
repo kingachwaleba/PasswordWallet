@@ -36,7 +36,7 @@ public class User {
     private String email;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 1000)
     @NotBlank(message = "{user.password.notBlank}")
     private String password;
 
