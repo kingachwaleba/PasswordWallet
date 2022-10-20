@@ -5,7 +5,6 @@ import com.example.passwordwallet.config.ErrorMessage;
 import com.example.passwordwallet.encoders.HMACPasswordEncoder;
 import com.example.passwordwallet.encoders.Sha512PasswordEncoder;
 import com.example.passwordwallet.password.Password;
-import com.example.passwordwallet.password.PasswordNotFoundException;
 import com.example.passwordwallet.password.PasswordService;
 import com.example.passwordwallet.utils.SecureUtils;
 import org.springframework.context.annotation.Lazy;

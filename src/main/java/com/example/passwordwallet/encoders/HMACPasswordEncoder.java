@@ -19,7 +19,6 @@ public class HMACPasswordEncoder implements PasswordEncoder {
     }
 
     public static String getPasswordWithHMAC(String text){
-        System.out.println(secretKey);
         return new HmacUtils("HmacSHA512", secretKey).hmacHex(text);
     }
 }
