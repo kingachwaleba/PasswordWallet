@@ -4,7 +4,11 @@ import com.example.passwordwallet.config.EnvConfig;
 import com.example.passwordwallet.config.ErrorMessage;
 import com.example.passwordwallet.encoders.HMACPasswordEncoder;
 import com.example.passwordwallet.encoders.Sha512PasswordEncoder;
+import com.example.passwordwallet.password.Password;
+import com.example.passwordwallet.password.PasswordNotFoundException;
+import com.example.passwordwallet.password.PasswordService;
 import com.example.passwordwallet.utils.SecureUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,11 +24,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ErrorMessage errorMessage;
+    private final PasswordService passwordService;
     private static final String pepper = EnvConfig.getPepper();
 
-    public UserServiceImpl(UserRepository userRepository, ErrorMessage errorMessage) {
+    public UserServiceImpl(UserRepository userRepository, ErrorMessage errorMessage,
+                           @Lazy PasswordService passwordService) {
         this.userRepository = userRepository;
         this.errorMessage = errorMessage;
+        this.passwordService = passwordService;
     }
 
     @Override
@@ -103,5 +110,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public User changeUserPassword(User user, String newPassword) throws Exception {
+        List<Password> passwordList = passwordService.getAll();
+        for (Password password : passwordList)
+            password.setPassword(passwordService.getOne(password.getId()));
+
+        user.setPassword(newPassword);
+        if (user.getIsPasswordKeptAsHash())
+            user = saveUsingSHA512(user);
+        else
+            user = saveUsingHMAC(user);
+
+        for (Password password : passwordList)
+            passwordService.save(password);
+
+        return user;
     }
 }

@@ -5,6 +5,7 @@ import com.example.passwordwallet.config.ErrorMessage;
 import com.example.passwordwallet.config.JwtProvider;
 import com.example.passwordwallet.config.JwtResponse;
 import com.example.passwordwallet.helpers.LoginForm;
+import com.example.passwordwallet.helpers.UpdatePasswordHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.util.Date;
 import java.util.Optional;
@@ -79,5 +81,19 @@ public class UserController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
         return ResponseEntity.ok(new JwtResponse(jwtToken, expiryDate, userDetails.getUsername()));
+    }
+
+    @Transactional
+    @PutMapping("/account/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody UpdatePasswordHolder updatePasswordHolder,
+                                            BindingResult bindingResult) throws Exception {
+        String password = updatePasswordHolder.getPassword();
+
+        if (userService.validation(bindingResult, password).size() != 0)
+            return new ResponseEntity<>(errorMessage.get("data.error"), HttpStatus.BAD_REQUEST);
+
+        User user = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+
+        return new ResponseEntity<>(userService.changeUserPassword(user, password), HttpStatus.OK);
     }
 }
