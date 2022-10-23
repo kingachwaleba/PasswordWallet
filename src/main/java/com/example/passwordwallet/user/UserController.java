@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.Column;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.util.Date;
@@ -88,12 +89,14 @@ public class UserController {
     public ResponseEntity<?> changePassword(@Valid @RequestBody UpdatePasswordHolder updatePasswordHolder,
                                             BindingResult bindingResult) throws Exception {
         String password = updatePasswordHolder.getPassword();
-
+        Boolean isPasswordKeptAsHash = updatePasswordHolder.getIsPasswordKeptAsHash();
+        System.out.println(isPasswordKeptAsHash);
         if (userService.validation(bindingResult, password).size() != 0)
             return new ResponseEntity<>(errorMessage.get("data.error"), HttpStatus.BAD_REQUEST);
 
         User user = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
 
-        return new ResponseEntity<>(userService.changeUserPassword(user, password), HttpStatus.OK);
+        return new ResponseEntity<>(
+                userService.changeUserPassword(user, isPasswordKeptAsHash, password), HttpStatus.OK);
     }
 }

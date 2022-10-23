@@ -16,5 +16,5 @@ public interface UserService {
     List<String> validation(BindingResult bindingResult, String password);
     Boolean existsByLogin(String login);
     Boolean existsByEmail(String email);
-    User changeUserPassword(User user, String newPassword) throws Exception;
+    User changeUserPassword(User user, Boolean isPasswordKeptAsHash, String newPassword) throws Exception;
 }

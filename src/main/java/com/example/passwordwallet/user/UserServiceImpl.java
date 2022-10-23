@@ -112,12 +112,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User changeUserPassword(User user, String newPassword) throws Exception {
+    public User changeUserPassword(User user, Boolean isPasswordKeptAsHash, String newPassword) throws Exception {
         List<Password> passwordList = passwordService.getAll();
         for (Password password : passwordList)
             password.setPassword(passwordService.getOne(password.getId()));
 
         user.setPassword(newPassword);
+        user.setIsPasswordKeptAsHash(isPasswordKeptAsHash);
         if (user.getIsPasswordKeptAsHash())
             user = saveUsingSHA512(user);
         else

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 
 @Getter
@@ -15,4 +16,7 @@ public class UpdatePasswordHolder {
 
     @NotBlank(message = "{user.password.notBlank}")
     private String password;
+
+    @Column(nullable = false)
+    private Boolean isPasswordKeptAsHash;
 }
