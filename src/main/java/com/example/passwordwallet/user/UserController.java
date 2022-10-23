@@ -90,7 +90,6 @@ public class UserController {
                                             BindingResult bindingResult) throws Exception {
         String password = updatePasswordHolder.getPassword();
         Boolean isPasswordKeptAsHash = updatePasswordHolder.getIsPasswordKeptAsHash();
-        System.out.println(isPasswordKeptAsHash);
         if (userService.validation(bindingResult, password).size() != 0)
             return new ResponseEntity<>(errorMessage.get("data.error"), HttpStatus.BAD_REQUEST);
 
