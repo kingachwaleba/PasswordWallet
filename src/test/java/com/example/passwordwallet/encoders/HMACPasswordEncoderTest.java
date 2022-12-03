@@ -12,13 +12,6 @@ import static org.junit.Assert.*;
 @SpringBootTest
 public class HMACPasswordEncoderTest {
 
-    private HMACPasswordEncoder hmacPasswordEncoder;
-
-    @Before
-    public void setUp() {
-        hmacPasswordEncoder = new HMACPasswordEncoder();
-    }
-
     @Test
     public void getPasswordWithHMAC_returnHashedPassword_ifEverythingWentCorrectly() {
         assertEquals(
@@ -30,11 +23,4 @@ public class HMACPasswordEncoderTest {
     public void getPasswordWithHMAC_throwsIllegalArgumentException_ifGotEmptyString() {
         HMACPasswordEncoder.getPasswordWithHMAC("");
     }
-
-//    @Test
-//    public void encode() {
-//        String encodedPassword = "47cff69c4f0dc969ae4e33e6835b32d324cb6e61ab8b3ee195accc75efbf13cd2274cff97d912457490fc043831acb4f24adb0a065afa6f8b778ace69826eb84";
-//        String rawPassword = "Kinga12345+";
-//        assertTrue(hmacPasswordEncoder.matches(rawPassword, encodedPassword));
-//    }
 }
