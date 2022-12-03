@@ -19,6 +19,9 @@ public class Sha512PasswordEncoder implements PasswordEncoder {
     }
 
     public static String getPasswordWithSHA512(String text) {
+        if (text.equals(""))
+            throw new IllegalArgumentException();
+
         try {
             // Get an instance of SHA-512
             MessageDigest md = MessageDigest.getInstance("SHA-512");

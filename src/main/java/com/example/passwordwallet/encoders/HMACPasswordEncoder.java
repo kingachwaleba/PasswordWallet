@@ -6,7 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class HMACPasswordEncoder implements PasswordEncoder {
 
-    private static final String secretKey = EnvConfig.getSecretKey();
+    private static final String secretKey = "2s5v8y/B?E(H+MbPeShVmYq3t6w9z$C&";
 
     @Override
     public String encode(CharSequence rawPassword) {
@@ -19,6 +19,9 @@ public class HMACPasswordEncoder implements PasswordEncoder {
     }
 
     public static String getPasswordWithHMAC(String text){
+        if (text.equals(""))
+            throw new IllegalArgumentException();
+
         return new HmacUtils("HmacSHA512", secretKey).hmacHex(text);
     }
 }

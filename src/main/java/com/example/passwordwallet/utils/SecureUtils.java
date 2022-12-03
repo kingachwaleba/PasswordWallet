@@ -28,6 +28,9 @@ public class SecureUtils {
 
     // Encrypt a string with AES algorithm.
     public static String encrypt(String data, Key key) throws Exception {
+        if (data.equals("") || key == null)
+            throw new IllegalArgumentException();
+
         Cipher c = Cipher.getInstance("AES");
         c.init(Cipher.ENCRYPT_MODE, key);
         byte[] encVal = c.doFinal(data.getBytes());
@@ -36,13 +39,15 @@ public class SecureUtils {
 
     // Decrypt a string with AES algorithm.
     public static String decrypt(String encryptedData, Key key) throws Exception {
+        if (encryptedData.equals("") || key == null)
+            throw new IllegalArgumentException();
+
         Cipher c = Cipher.getInstance("AES");
         c.init(Cipher.DECRYPT_MODE, key);
         byte[] decoderValue = Base64.getDecoder().decode(encryptedData);
         byte[] decValue = c.doFinal(decoderValue);
         return new String(decValue);
     }
-
 
     public static byte[] calculateMD5(String text) {
         try {
