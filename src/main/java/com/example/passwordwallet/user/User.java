@@ -1,5 +1,7 @@
 package com.example.passwordwallet.user;
 
+import com.example.passwordwallet.ip_address.IpAddress;
+import com.example.passwordwallet.login_attempt.LoginAttempt;
 import com.example.passwordwallet.password.Password;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,6 +11,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,16 +49,39 @@ public class User {
     @Column(nullable = false)
     private Boolean isPasswordKeptAsHash;
 
+    @Column
+    private LocalDateTime lockoutTime;
+
+    @Column(nullable = false)
+    private Boolean isBlocked;
+
     // @Transient annotation is used to indicate that a field is not to be persisted in the database
     @Transient
     private String roles = "ROLE_USER";
 
+    @Column
+    private int unsuccessfulLoginCount;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ip_address_id", referencedColumnName="id")
     @JsonIgnore
-    @OneToMany(mappedBy="password", cascade = CascadeType.ALL)
+    private IpAddress ipAddress;
+
+    @JsonIgnore
+    @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
     private Set<Password> passwordSet = new HashSet<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
+    private Set<LoginAttempt> loginAttemptSet = new HashSet<>();
 
     public void addPassword(Password password) {
         passwordSet.add(password);
         password.setUser(this);
+    }
+
+    public void addLoginAttempt(LoginAttempt loginAttempt) {
+        loginAttemptSet.add(loginAttempt);
+        loginAttempt.setUser(this);
     }
 }
