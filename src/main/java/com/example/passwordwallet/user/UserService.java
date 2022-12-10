@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface UserService {
 
+    void save(User user);
     User saveUsingSHA512(User user);
     User saveUsingHMAC(User user);
     Optional<User> findByEmail(String email);

@@ -34,6 +34,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void save(User user) {
+        userRepository.save(user);
+    }
+
+    @Override
     public User saveUsingSHA512(User user) {
         try {
             String salt = SecureUtils.getSalt();
@@ -41,7 +46,7 @@ public class UserServiceImpl implements UserService {
                     "{sha512}" + Sha512PasswordEncoder.getPasswordWithSHA512(pepper + salt + user.getPassword()));
             user.setSalt(salt);
             user.setIsPasswordKeptAsHash(true);
-            userRepository.save(user);
+            save(user);
         } catch (NoSuchAlgorithmException exception) {
             throw new RuntimeException(exception);
         }
@@ -52,7 +57,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User saveUsingHMAC(User user) {
         user.setPassword("{hmac}" + HMACPasswordEncoder.getPasswordWithHMAC(user.getPassword()));
-        userRepository.save(user);
+        save(user);
 
         return user;
     }

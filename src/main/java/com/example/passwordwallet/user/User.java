@@ -52,20 +52,12 @@ public class User {
     @Column
     private LocalDateTime lockoutTime;
 
-    @Column(nullable = false)
-    private Boolean isBlocked;
-
     // @Transient annotation is used to indicate that a field is not to be persisted in the database
     @Transient
     private String roles = "ROLE_USER";
 
     @Column
     private int unsuccessfulLoginCount;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "ip_address_id", referencedColumnName="id")
-    @JsonIgnore
-    private IpAddress ipAddress;
 
     @JsonIgnore
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
