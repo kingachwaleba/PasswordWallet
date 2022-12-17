@@ -9,7 +9,6 @@ import com.example.passwordwallet.helpers.UpdatePasswordHolder;
 import com.example.passwordwallet.ip_address.IpAddress;
 import com.example.passwordwallet.ip_address.IpAddressService;
 import com.example.passwordwallet.login_attempt.LoginAttempt;
-import com.example.passwordwallet.login_attempt.LoginAttemptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,11 +19,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
@@ -34,18 +34,15 @@ public class UserController {
 
     private final UserService userService;
     private final IpAddressService ipAddressService;
-    private final LoginAttemptService loginAttemptService;
     private final ErrorMessage errorMessage;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
     private static final String pepper = EnvConfig.getPepper();
 
-    public UserController(UserService userService, IpAddressService ipAddressService,
-                          LoginAttemptService loginAttemptService, ErrorMessage errorMessage,
+    public UserController(UserService userService, IpAddressService ipAddressService, ErrorMessage errorMessage,
                           AuthenticationManager authenticationManager, JwtProvider jwtProvider) {
         this.userService = userService;
         this.ipAddressService = ipAddressService;
-        this.loginAttemptService = loginAttemptService;
         this.errorMessage = errorMessage;
         this.authenticationManager = authenticationManager;
         this.jwtProvider = jwtProvider;
@@ -67,7 +64,8 @@ public class UserController {
 
     @Transactional
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest, BindingResult bindingResult) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest, BindingResult bindingResult,
+                                              HttpServletRequest request) throws UnknownHostException {
         if (userService.getErrorList(bindingResult).size() != 0)
             return new ResponseEntity<>(errorMessage.get("data.error"), HttpStatus.BAD_REQUEST);
 
@@ -80,19 +78,16 @@ public class UserController {
 
         User user = optionalUser.get();
 
-        String ipAddressValue2 = ((ServletRequestAttributes)
-                RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr();
-
-        if (ipAddressService.findOneByIpAddress(ipAddressValue2).isPresent()) {
-            IpAddress ipAddress2 = ipAddressService.findOneByIpAddress(ipAddressValue2).get();
-            if (ipAddress2.getIsPermLock())
-                return new ResponseEntity<>("TO IP JEST ZABLOKOWANE -> ZGLOS SIE ZEBY CI ODBLOKOWAC", HttpStatus.UNAUTHORIZED);
-            if (!(ipAddress2.getTempLockTime() == null) && ipAddress2.getTempLockTime().isAfter(LocalDateTime.now()))
-                return new ResponseEntity<>("TO IP JEST POD KWARANTANNA -> POCZEKAJ", HttpStatus.UNAUTHORIZED);
+        IpAddress ipAddress;
+        try {
+            ipAddress = ipAddressService.checkIpAddress(ipAddressService.getIpAddressValue(request));
+        }
+        catch (IllegalStateException exception) {
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.UNAUTHORIZED);
         }
 
         if (!(user.getLockoutTime() == null) && user.getLockoutTime().isAfter(LocalDateTime.now()))
-            return new ResponseEntity<>("JESTES POD KWARANTANNA -> POCZEKAJ", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("This account is temporarily blocked!", HttpStatus.UNAUTHORIZED);
 
         try {
             Authentication authentication;
@@ -109,57 +104,44 @@ public class UserController {
             Date expiryDate = jwtProvider.getExpiryDateFromJwtToken(jwtToken);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
+            LoginAttempt loginAttempt = new LoginAttempt(LocalDateTime.now(), true, user);
+            ipAddress.addLoginAttempt(loginAttempt);
+            ipAddress.setUnsuccessfulLoginCount(0);
+            ipAddress.setTempLockTime(null);
+
+            user.setUnsuccessfulLoginCount(0);
+            user.setLockoutTime(null);
+
+            ipAddressService.save(ipAddress);
+            userService.save(user);
+
             return ResponseEntity.ok(new JwtResponse(jwtToken, expiryDate, userDetails.getUsername()));
         }
         catch (AuthenticationException authenticationException) {
-            String ipAddressValue = ((ServletRequestAttributes)
-                    RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr();
+            LoginAttempt loginAttempt = new LoginAttempt(LocalDateTime.now(), false, user);
 
-            IpAddress ipAddress;
-            if (ipAddressService.findOneByIpAddress(ipAddressValue).isPresent()) {
-                ipAddress = ipAddressService.findOneByIpAddress(ipAddressValue).get();
-            }
-            else {
-                ipAddress = new IpAddress();
-                ipAddress.setIpAddress(ipAddressValue);
-            }
             ipAddress.setUnsuccessfulLoginCount(ipAddress.getUnsuccessfulLoginCount() + 1);
-            ipAddress.setIsPermLock(ipAddress.getUnsuccessfulLoginCount() >= 10);
-
-            LoginAttempt loginAttempt = new LoginAttempt();
-            loginAttempt.setAttemptTime(LocalDateTime.now());
-            loginAttempt.setUser(user);
-            loginAttempt.setIsCorrect(false);
             ipAddress.addLoginAttempt(loginAttempt);
 
             user.setUnsuccessfulLoginCount(user.getUnsuccessfulLoginCount() + 1);
 
-            switch (user.getUnsuccessfulLoginCount()) {
-                case 2:
-                    user.setLockoutTime(LocalDateTime.now().plusSeconds(5));
-                    break;
-                case 3:
-                    user.setLockoutTime(LocalDateTime.now().plusSeconds(10));
-                    break;
-                case 4:
-                    user.setLockoutTime(LocalDateTime.now().plusSeconds(60));
-                    break;
-                default:
-                    user.setLockoutTime(null);
-                    break;
-            }
+            if (user.getUnsuccessfulLoginCount() == 2)
+                user.setLockoutTime(LocalDateTime.now().plusSeconds(5));
+            else if (user.getUnsuccessfulLoginCount() == 3)
+                user.setLockoutTime(LocalDateTime.now().plusSeconds(10));
+            else if (user.getUnsuccessfulLoginCount() >= 4)
+                user.setLockoutTime(LocalDateTime.now().plusSeconds(60));
 
-            switch (ipAddress.getUnsuccessfulLoginCount()) {
-                case 2:
-                    ipAddress.setTempLockTime(LocalDateTime.now().plusSeconds(5));
-                    break;
-                case 3:
-                    ipAddress.setTempLockTime(LocalDateTime.now().plusSeconds(10));
-                    break;
+            if (ipAddress.getUnsuccessfulLoginCount() == 2)
+                ipAddress.setTempLockTime(LocalDateTime.now().plusSeconds(5));
+            else if (ipAddress.getUnsuccessfulLoginCount() == 3)
+                ipAddress.setTempLockTime(LocalDateTime.now().plusSeconds(10));
+            else if (ipAddress.getUnsuccessfulLoginCount() >= 4) {
+                ipAddress.setTempLockTime(null);
+                ipAddress.setIsPermLock(true);
             }
 
             ipAddressService.save(ipAddress);
-            loginAttemptService.save(loginAttempt);
             userService.save(user);
 
             return new ResponseEntity<>(errorMessage.get("data.error"), HttpStatus.UNAUTHORIZED);

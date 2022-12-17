@@ -45,4 +45,10 @@ public class LoginAttempt {
     @JoinColumn(name = "ip_address_id", referencedColumnName="id")
     @JsonIgnore
     private IpAddress ipAddress;
+
+    public LoginAttempt(LocalDateTime attemptTime, Boolean isCorrect, User user) {
+        this.attemptTime = attemptTime;
+        this.isCorrect = isCorrect;
+        this.user = user;
+    }
 }
