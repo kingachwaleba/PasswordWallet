@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User changeUserPassword(User user, Boolean isPasswordKeptAsHash, String newPassword) throws Exception {
-        List<Password> passwordList = passwordService.getAll();
+        List<Password> passwordList = passwordService.findAll();
         for (Password password : passwordList)
             password.setPassword(passwordService.getOne(password.getId()));
 

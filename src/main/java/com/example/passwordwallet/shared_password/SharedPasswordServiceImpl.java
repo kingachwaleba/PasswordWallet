@@ -5,6 +5,7 @@ import com.example.passwordwallet.user.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SharedPasswordServiceImpl implements SharedPasswordService {
@@ -30,7 +31,23 @@ public class SharedPasswordServiceImpl implements SharedPasswordService {
     }
 
     @Override
+    public Optional<SharedPassword> getOneById(int id) {
+        return sharedPasswordRepository.findById(id);
+    }
+
+    @Override
+    public List<SharedPassword> findAllByUserAndPassword(User user, Password password) {
+        return sharedPasswordRepository.findAllByUserAndPassword(user, password);
+    }
+
+    @Override
     public List<SharedPassword> findAllByOwnerAndUserAndPassword(User owner, User user, Password password) {
         return sharedPasswordRepository.findAllByOwnerAndUserAndPassword(owner, user, password);
+    }
+
+    @Override
+    public List<SharedPassword> findAllByUser(User user) {
+
+        return sharedPasswordRepository.findAllByUser(user);
     }
 }

@@ -54,7 +54,7 @@ public class PasswordController {
     }
 
     @GetMapping("/password/{id}")
-    @PreAuthorize("@authenticationService.isPasswordOwner(#id)")
+    @PreAuthorize("@authenticationService.isPasswordOwnerOrPassword(#id)")
     public ResponseEntity<?> getDecryptedPassword(@PathVariable String id) throws Exception {
         return new ResponseEntity<>(passwordService.getOne(Integer.parseInt(id)), HttpStatus.OK);
     }

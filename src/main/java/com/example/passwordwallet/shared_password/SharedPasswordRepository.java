@@ -8,5 +8,7 @@ import java.util.List;
 
 public interface SharedPasswordRepository extends JpaRepository<SharedPassword, Integer> {
 
+    List<SharedPassword> findAllByUserAndPassword(User user, Password password);
     List<SharedPassword> findAllByOwnerAndUserAndPassword(User owner, User user, Password password);
+    List<SharedPassword> findAllByUser(User user);
 }

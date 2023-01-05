@@ -9,9 +9,7 @@ import com.example.passwordwallet.utils.SecureUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PasswordServiceImpl implements PasswordService {
@@ -45,10 +43,22 @@ public class PasswordServiceImpl implements PasswordService {
     }
 
     @Override
-    public List<Password> getAll() {
+    public List<Password> findAll() {
         User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
 
         return passwordRepository.findAllByUser(currentLoggedInUser);
+    }
+
+    @Override
+    public Map<String, Object> getAll() {
+        User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+        List<Password> passwordList = passwordRepository.findAllByUser(currentLoggedInUser);
+        List<SharedPassword> sharedPasswordList = sharedPasswordService.findAllByUser(currentLoggedInUser);
+        Map<String, Object> allPasswordsMap = new HashMap<>();
+        allPasswordsMap.put("passwordList", passwordList);
+        allPasswordsMap.put("sharedPasswordList", sharedPasswordList);
+
+        return allPasswordsMap;
     }
 
     @Override
@@ -56,7 +66,15 @@ public class PasswordServiceImpl implements PasswordService {
         User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
         Password password = passwordRepository.findById(id).orElseThrow(PasswordNotFoundException::new);
 
-        return SecureUtils.decrypt(password.getPassword(), SecureUtils.generateKey(currentLoggedInUser.getPassword()));
+        List<SharedPassword> sharedPasswordList = sharedPasswordService.
+                findAllByUserAndPassword(currentLoggedInUser, password);
+        if (sharedPasswordList.size() != 0)
+            return SecureUtils.
+                    decrypt(password.getPassword(), SecureUtils.generateKey(
+                            sharedPasswordList.get(0).getOwner().getPassword()));
+        else
+            return SecureUtils.
+                    decrypt(password.getPassword(), SecureUtils.generateKey(currentLoggedInUser.getPassword()));
     }
 
     @Override
