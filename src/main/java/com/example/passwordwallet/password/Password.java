@@ -1,5 +1,6 @@
 package com.example.passwordwallet.password;
 
+import com.example.passwordwallet.shared_password.SharedPassword;
 import com.example.passwordwallet.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,8 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -42,4 +45,13 @@ public class Password {
     @JoinColumn(name = "user_id", referencedColumnName="id")
     @JsonIgnore
     private User user;
+
+    @JsonIgnore
+    @OneToMany(mappedBy="password", cascade = CascadeType.ALL)
+    private Set<SharedPassword> sharedPasswordSet = new HashSet<>();
+
+    public void addSharedPassword(SharedPassword sharedPassword) {
+        sharedPasswordSet.add(sharedPassword);
+        sharedPassword.setPassword(this);
+    }
 }

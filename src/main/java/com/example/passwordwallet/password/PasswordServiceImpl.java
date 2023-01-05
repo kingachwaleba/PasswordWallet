@@ -1,5 +1,7 @@
 package com.example.passwordwallet.password;
 
+import com.example.passwordwallet.shared_password.SharedPassword;
+import com.example.passwordwallet.shared_password.SharedPasswordService;
 import com.example.passwordwallet.user.User;
 import com.example.passwordwallet.user.UserNotFoundException;
 import com.example.passwordwallet.user.UserService;
@@ -16,10 +18,13 @@ public class PasswordServiceImpl implements PasswordService {
 
     private final PasswordRepository passwordRepository;
     private final UserService userService;
+    private final SharedPasswordService sharedPasswordService;
 
-    public PasswordServiceImpl(PasswordRepository passwordRepository, UserService userService) {
+    public PasswordServiceImpl(PasswordRepository passwordRepository, UserService userService,
+                               SharedPasswordService sharedPasswordService) {
         this.passwordRepository = passwordRepository;
         this.userService = userService;
+        this.sharedPasswordService = sharedPasswordService;
     }
 
     @Override
@@ -32,6 +37,11 @@ public class PasswordServiceImpl implements PasswordService {
         passwordRepository.save(password);
 
         return password;
+    }
+
+    @Override
+    public Optional<Password> findById(int id) {
+        return passwordRepository.findById(id);
     }
 
     @Override
@@ -62,5 +72,17 @@ public class PasswordServiceImpl implements PasswordService {
             bindingResult.getFieldErrors().forEach(fieldError -> messages.add(fieldError.getDefaultMessage()));
 
         return messages;
+    }
+
+    @Override
+    public SharedPassword sharePassword(int userId, int passwordId) {
+        User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+        User user = userService.findById(userId).orElseThrow(UserNotFoundException::new);
+        Password password = findById(passwordId).orElseThrow(PasswordNotFoundException::new);
+
+        if (sharedPasswordService.findAllByOwnerAndUserAndPassword(currentLoggedInUser, user, password).size() != 0)
+            return null;
+
+        return sharedPasswordService.save(user, currentLoggedInUser, password);
     }
 }

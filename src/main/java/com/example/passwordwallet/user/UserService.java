@@ -10,6 +10,7 @@ public interface UserService {
     void save(User user);
     User saveUsingSHA512(User user);
     User saveUsingHMAC(User user);
+    Optional<User> findById(int id);
     Optional<User> findByEmail(String email);
     Optional<User> findCurrentLoggedInUser();
     List<String> getErrorList(BindingResult bindingResult);

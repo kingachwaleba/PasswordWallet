@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -46,6 +45,14 @@ public class UserController {
         this.errorMessage = errorMessage;
         this.authenticationManager = authenticationManager;
         this.jwtProvider = jwtProvider;
+    }
+
+    @GetMapping("/user/{email}")
+    public ResponseEntity<?> searchForUser(@PathVariable String email) {
+
+        return new ResponseEntity<>(
+                userService.findByEmail(email).orElseThrow(UserNotFoundException::new), HttpStatus.OK);
+
     }
 
     @PostMapping("/register")

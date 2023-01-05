@@ -1,8 +1,8 @@
 package com.example.passwordwallet.user;
 
-import com.example.passwordwallet.ip_address.IpAddress;
 import com.example.passwordwallet.login_attempt.LoginAttempt;
 import com.example.passwordwallet.password.Password;
+import com.example.passwordwallet.shared_password.SharedPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -65,6 +65,10 @@ public class User {
 
     @JsonIgnore
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
+    private Set<SharedPassword> sharedPasswordSet = new HashSet<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
     private Set<LoginAttempt> loginAttemptSet = new HashSet<>();
 
     public void addPassword(Password password) {
@@ -75,5 +79,10 @@ public class User {
     public void addLoginAttempt(LoginAttempt loginAttempt) {
         loginAttemptSet.add(loginAttempt);
         loginAttempt.setUser(this);
+    }
+
+    public void addSharedPassword(SharedPassword sharedPassword) {
+        sharedPasswordSet.add(sharedPassword);
+        sharedPassword.setUser(this);
     }
 }

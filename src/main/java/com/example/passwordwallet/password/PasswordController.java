@@ -2,6 +2,7 @@ package com.example.passwordwallet.password;
 
 import com.example.passwordwallet.config.ErrorMessage;
 import com.example.passwordwallet.security.AuthenticationService;
+import com.example.passwordwallet.shared_password.SharedPassword;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +34,18 @@ public class PasswordController {
             return new ResponseEntity<>(errorMessage.get("data.error"), HttpStatus.BAD_REQUEST);
 
         return new ResponseEntity<>(passwordService.save(password), HttpStatus.OK);
+    }
+
+    @Transactional
+    @PostMapping("/share-password/{userId}/{passwordId}")
+    @PreAuthorize("@authenticationService.isPasswordOwner(#passwordId)")
+    public ResponseEntity<?> sharePassword(@PathVariable int userId, @PathVariable int passwordId) {
+        SharedPassword sharedPassword = passwordService.sharePassword(userId, passwordId);
+
+        if (sharedPassword == null)
+            return new ResponseEntity<>("You've already shared this password to this user!", HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>(sharedPassword, HttpStatus.OK);
     }
 
     @GetMapping("/all")
