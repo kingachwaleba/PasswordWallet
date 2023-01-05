@@ -1,5 +1,6 @@
 package com.example.passwordwallet.password;
 
+import com.example.passwordwallet.helpers.UpdateNotMasterPasswordHolder;
 import com.example.passwordwallet.shared_password.SharedPassword;
 import com.example.passwordwallet.shared_password.SharedPasswordService;
 import com.example.passwordwallet.user.User;
@@ -35,6 +36,27 @@ public class PasswordServiceImpl implements PasswordService {
         passwordRepository.save(password);
 
         return password;
+    }
+
+    @Override
+    public Password edit(Password oldPassword, UpdateNotMasterPasswordHolder newPassword) throws Exception {
+        User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+
+        oldPassword.setPassword(SecureUtils.encrypt(newPassword.getPassword(),
+                SecureUtils.generateKey(currentLoggedInUser.getPassword())));
+        oldPassword.setLogin(newPassword.getLogin());
+        oldPassword.setWeb_address(newPassword.getWeb_address());
+        oldPassword.setDescription(newPassword.getDescription());
+
+        return passwordRepository.save(oldPassword);
+    }
+
+    @Override
+    public void delete(int id) {
+        Password password = findById(id).orElseThrow(PasswordNotFoundException::new);
+
+        sharedPasswordService.findAllByPassword(password).forEach(sharedPasswordService::delete);
+        passwordRepository.delete(password);
     }
 
     @Override

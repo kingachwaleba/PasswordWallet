@@ -19,4 +19,6 @@ public interface UserService {
     Boolean existsByLogin(String login);
     Boolean existsByEmail(String email);
     User changeUserPassword(User user, Boolean isPasswordKeptAsHash, String newPassword) throws Exception;
+    boolean ifInReadMode(User user);
+    void changeMode(User user);
 }

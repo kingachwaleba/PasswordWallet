@@ -31,7 +31,6 @@ public class Password {
     private String password;
 
     @Column(length = 256)
-
     private String web_address;
 
     @Column(length = 256)

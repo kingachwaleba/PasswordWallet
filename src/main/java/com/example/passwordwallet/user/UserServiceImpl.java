@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(
                     "{sha512}" + Sha512PasswordEncoder.getPasswordWithSHA512(pepper + salt + user.getPassword()));
             user.setSalt(salt);
+            user.setIfReadMode(true);
             user.setIsPasswordKeptAsHash(true);
             save(user);
         } catch (NoSuchAlgorithmException exception) {
@@ -138,5 +139,16 @@ public class UserServiceImpl implements UserService {
             passwordService.save(password);
 
         return user;
+    }
+
+    @Override
+    public boolean ifInReadMode(User user) {
+        return user.getIfReadMode();
+    }
+
+    @Override
+    public void changeMode(User user) {
+        user.setIfReadMode(!user.getIfReadMode());
+        save(user);
     }
 }

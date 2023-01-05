@@ -9,9 +9,10 @@ import java.util.Optional;
 public interface SharedPasswordService {
 
     SharedPassword save(User user, User owner, Password password);
+    void delete(SharedPassword sharedPassword);
     Optional<SharedPassword> getOneById(int id);
     List<SharedPassword> findAllByUserAndPassword(User user, Password password);
     List<SharedPassword> findAllByOwnerAndUserAndPassword(User owner, User user, Password password);
     List<SharedPassword> findAllByUser(User user);
-
+    List<SharedPassword> findAllByPassword(Password password);
 }

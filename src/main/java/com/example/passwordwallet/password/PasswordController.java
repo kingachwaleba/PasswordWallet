@@ -1,8 +1,12 @@
 package com.example.passwordwallet.password;
 
 import com.example.passwordwallet.config.ErrorMessage;
+import com.example.passwordwallet.helpers.UpdateNotMasterPasswordHolder;
 import com.example.passwordwallet.security.AuthenticationService;
 import com.example.passwordwallet.shared_password.SharedPassword;
+import com.example.passwordwallet.user.User;
+import com.example.passwordwallet.user.UserNotFoundException;
+import com.example.passwordwallet.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +20,14 @@ import javax.validation.Valid;
 public class PasswordController {
 
     private final PasswordService passwordService;
+    private final UserService userService;
     private final AuthenticationService authenticationService;
     private final ErrorMessage errorMessage;
 
-    public PasswordController(PasswordService passwordService, AuthenticationService authenticationService,
-                              ErrorMessage errorMessage) {
+    public PasswordController(PasswordService passwordService, UserService userService,
+                              AuthenticationService authenticationService, ErrorMessage errorMessage) {
         this.passwordService = passwordService;
+        this.userService = userService;
         this.authenticationService = authenticationService;
         this.errorMessage = errorMessage;
     }
@@ -57,5 +63,36 @@ public class PasswordController {
     @PreAuthorize("@authenticationService.isPasswordOwnerOrPassword(#id)")
     public ResponseEntity<?> getDecryptedPassword(@PathVariable String id) throws Exception {
         return new ResponseEntity<>(passwordService.getOne(Integer.parseInt(id)), HttpStatus.OK);
+    }
+
+    @Transactional
+    @DeleteMapping("/password/{id}")
+    @PreAuthorize("@authenticationService.isPasswordOwner(#id)")
+    public ResponseEntity<?> deletePassword(@PathVariable int id) {
+        User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+        if (userService.ifInReadMode(currentLoggedInUser))
+            return new ResponseEntity<>(
+                    "You have to switch to modify mode to delete password!", HttpStatus.UNAUTHORIZED);
+
+        passwordService.delete(id);
+
+        return new ResponseEntity<>("Successfully deleted password!", HttpStatus.OK);
+    }
+
+    @PutMapping("/password/{id}")
+    @PreAuthorize("@authenticationService.isPasswordOwner(#id)")
+    public ResponseEntity<?> editPassword(@Valid @RequestBody UpdateNotMasterPasswordHolder newPassword,
+                                          BindingResult bindingResult, @PathVariable int id) throws Exception {
+        User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+        if (userService.ifInReadMode(currentLoggedInUser))
+            return new ResponseEntity<>(
+                    "You have to switch to modify mode to delete password!", HttpStatus.UNAUTHORIZED);
+
+        if (passwordService.getErrorList(bindingResult).size() != 0)
+            return new ResponseEntity<>(errorMessage.get("data.error"), HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>(passwordService.edit(
+                passwordService.getOneById(id).orElseThrow(PasswordNotFoundException::new), newPassword),
+                HttpStatus.OK);
     }
 }

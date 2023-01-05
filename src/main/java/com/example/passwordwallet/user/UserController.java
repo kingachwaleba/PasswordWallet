@@ -159,6 +159,11 @@ public class UserController {
     @PutMapping("/account/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody UpdatePasswordHolder updatePasswordHolder,
                                             BindingResult bindingResult) throws Exception {
+        User currentLoggedInUser = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+        if (userService.ifInReadMode(currentLoggedInUser))
+            return new ResponseEntity<>(
+                    "You have to switch to modify mode to delete password!", HttpStatus.UNAUTHORIZED);
+
         String password = updatePasswordHolder.getPassword();
         Boolean isPasswordKeptAsHash = updatePasswordHolder.getIsPasswordKeptAsHash();
         if (userService.validation(bindingResult, password).size() != 0)
@@ -168,5 +173,13 @@ public class UserController {
 
         return new ResponseEntity<>(
                 userService.changeUserPassword(user, isPasswordKeptAsHash, password), HttpStatus.OK);
+    }
+
+    @PutMapping("/change-mode")
+    public ResponseEntity<?> changeMode() {
+        User user = userService.findCurrentLoggedInUser().orElseThrow(UserNotFoundException::new);
+        userService.changeMode(user);
+
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }

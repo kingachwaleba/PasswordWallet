@@ -31,6 +31,11 @@ public class SharedPasswordServiceImpl implements SharedPasswordService {
     }
 
     @Override
+    public void delete(SharedPassword sharedPassword) {
+        sharedPasswordRepository.delete(sharedPassword);
+    }
+
+    @Override
     public Optional<SharedPassword> getOneById(int id) {
         return sharedPasswordRepository.findById(id);
     }
@@ -49,5 +54,10 @@ public class SharedPasswordServiceImpl implements SharedPasswordService {
     public List<SharedPassword> findAllByUser(User user) {
 
         return sharedPasswordRepository.findAllByUser(user);
+    }
+
+    @Override
+    public List<SharedPassword> findAllByPassword(Password password) {
+        return sharedPasswordRepository.findAllByPassword(password);
     }
 }

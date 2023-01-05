@@ -11,4 +11,5 @@ public interface SharedPasswordRepository extends JpaRepository<SharedPassword, 
     List<SharedPassword> findAllByUserAndPassword(User user, Password password);
     List<SharedPassword> findAllByOwnerAndUserAndPassword(User owner, User user, Password password);
     List<SharedPassword> findAllByUser(User user);
+    List<SharedPassword> findAllByPassword(Password password);
 }

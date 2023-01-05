@@ -59,6 +59,9 @@ public class User {
     @Column
     private int unsuccessfulLoginCount;
 
+    @Column(nullable = false)
+    private Boolean ifReadMode;
+
     @JsonIgnore
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
     private Set<Password> passwordSet = new HashSet<>();
